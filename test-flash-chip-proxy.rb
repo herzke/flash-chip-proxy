@@ -37,8 +37,17 @@ class TestFlashChipProxy < Test::Unit::TestCase
     assert_equal(8881, FlashChipProxySettings.new(".",8881).port())
 
     # test if the port actually opens)
+    assert_false(system("netstat -tln | grep -q 0.0.0.0:8882.*LISTEN"))
     p = FlashChipProxy.new(".",8882)
     assert_true(system("netstat -tln | grep -q 0.0.0.0:8882.*LISTEN"))
   end
-    
+
+  def test_cached_response
+    p = FlashChipProxy.new("./test_cache",8883)
+    request = "GET /\r\n\r\n"
+    IO.write("test_cache/request", request)
+    system("nc -w 1 localhost 8883 <test_cache/request >test_cache/response")
+    assert_equal("response\r\n\r\n", IO.read("test_cache/response"))
+  end
+
 end

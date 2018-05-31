@@ -1,4 +1,5 @@
 require 'socket'
+require 'digest'
 
 class FlashChipProxySettings
 
@@ -39,5 +40,23 @@ end
 class FlashChipProxy < FlashChipProxySettings
   def open_port()
     @acceptor = TCPServer.open(port())
+    @thread = Thread.new{acceptor_loop()}
+  end
+  def acceptor_loop()
+    loop do
+      socket = @acceptor.accept()
+      request = ""
+      line = ""
+      while request !~ /\r\n\r\n/
+        line = socket.sysread(1000)
+        request = request + line
+      end
+      request = request.sub(/\r\n\r\n.*/m, "\r\n\r\n")
+      md5=Digest::MD5.hexdigest(request)
+      if mode() == :replace
+        socket.write(IO.read(File.join(storage_directory(), md5)))
+        socket.close()
+      end
+    end
   end
 end
