@@ -24,6 +24,9 @@ class TestFlashChipProxy < Test::Unit::TestCase
 
     # storage directory can be set with constructor parameter
     assert_equal("/tmp", FlashChipProxy.new("/tmp").storage_directory())
+
+    # storage directory must exist
+    assert_raise(RuntimeError){FlashChipProxy.new("/doesnotexist")}
   end
   
 end
