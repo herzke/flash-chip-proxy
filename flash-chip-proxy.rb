@@ -10,10 +10,11 @@ class FlashChipProxy
     end
   end
 
-  def storage_directory() "." end
+  attr_accessor :storage_directory
   
-  def initialize()
+  def initialize(storage_directory = ".")
     self.mode = :replace
+    self.storage_directory = storage_directory
   end
 
 end

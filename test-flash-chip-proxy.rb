@@ -21,6 +21,9 @@ class TestFlashChipProxy < Test::Unit::TestCase
   def test_storage_directory()
     # The default storage directory is the cwd "."
     assert_equal(".", FlashChipProxy.new().storage_directory())
+
+    # storage directory can be set with constructor parameter
+    assert_equal("/tmp", FlashChipProxy.new("/tmp").storage_directory())
   end
   
 end
