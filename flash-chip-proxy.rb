@@ -49,6 +49,8 @@ class FlashChipProxy < FlashChipProxySettings
     @thread = Thread.new{acceptor_loop()}
   end
 
+  attr_reader :thread
+
   def acceptor_loop()
     loop do
       socket = @acceptor.accept()
