@@ -1,4 +1,6 @@
-class FlashChipProxy
+require 'socket'
+
+class FlashChipProxySettings
 
   attr_reader(:mode)
   def mode=(operating_mode)
@@ -19,9 +21,23 @@ class FlashChipProxy
     end
   end
 
-  def initialize(storage_directory = ".")
+  attr_accessor :port
+  
+  def initialize(storage_directory = ".", port = 8880)
     self.mode = :replace
     self.storage_directory = storage_directory
+    self.port = port
+    open_port()
   end
 
+  def open_port()
+    # derived class will do:
+    # @acceptor = TCPServer.open(port())
+  end
+end
+
+class FlashChipProxy < FlashChipProxySettings
+  def open_port()
+    @acceptor = TCPServer.open(port())
+  end
 end
