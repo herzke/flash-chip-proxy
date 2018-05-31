@@ -9,6 +9,8 @@ class FlashChipProxy
             operating_mode.inspect()
     end
   end
+
+  def storage_directory() "." end
   
   def initialize()
     self.mode = :replace

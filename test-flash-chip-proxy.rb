@@ -3,7 +3,7 @@ require "test/unit"
 
 class TestFlashChipProxy < Test::Unit::TestCase
 
-  def test_operating_modes
+  def test_operating_modes()
     # the FlashChipProxy can be in modes :learn or :replace
 
     # Default is :replace
@@ -17,5 +17,10 @@ class TestFlashChipProxy < Test::Unit::TestCase
     # We cannot assign arbitrary modes
     assert_raise(RuntimeError){p.mode = :hello}
   end
- FlashChipProxy
+
+  def test_storage_directory()
+    # The default storage directory is the cwd "."
+    assert_equal(".", FlashChipProxy.new().storage_directory())
+  end
+  
 end
