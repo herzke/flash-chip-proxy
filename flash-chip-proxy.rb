@@ -42,21 +42,41 @@ class FlashChipProxy < FlashChipProxySettings
     @acceptor = TCPServer.open(port())
     @thread = Thread.new{acceptor_loop()}
   end
+
   def acceptor_loop()
     loop do
       socket = @acceptor.accept()
-      request = ""
-      line = ""
-      while request !~ /\r\n\r\n/
-        line = socket.sysread(1000)
-        request = request + line
-      end
-      request = request.sub(/\r\n\r\n.*/m, "\r\n\r\n")
-      md5=Digest::MD5.hexdigest(request)
-      if mode() == :replace
-        socket.write(IO.read(File.join(storage_directory(), md5)))
-        socket.close()
-      end
+      handle_connection(socket)
     end
+  end
+
+  def handle_connection(connection)
+    request = read_request(connection)
+    md5=Digest::MD5.hexdigest(request)
+    cache_file = File.join(storage_directory(), md5)
+    if mode() == :replace
+      serve_from_cache(connection, request, cache_file)
+    else
+      serve_from_remote_and_store(connection, request, cache_file)
+    end
+    connection.close()
+  end
+
+  def serve_from_cache(connection, request, cache_file)
+    connection.write(IO.read(cache_file))
+  end
+
+  def serve_from_remote_and_store(connection, request, cache_file)
+  end
+
+  
+  def read_request(connection)
+    request = ""
+    while request !~ /\r\n\r\n/
+      line = connection.sysread(1000)
+      request = request + line
+    end
+    request = request.sub(/\r\n\r\n.*/m, "\r\n\r\n")
+    return request
   end
 end
