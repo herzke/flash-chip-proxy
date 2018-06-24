@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+require_relative 'flash-chip-proxy'
+
+port = 80
+cache_directory = ARGV[0]
+proxy = FlashChipProxy.new(cache_directory, port)
+proxy.thread().join()
