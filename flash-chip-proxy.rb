@@ -75,16 +75,21 @@ class FlashChipProxy < FlashChipProxySettings
   end
 
   def serve_from_remote_and_store(client, request, cache_file)
+    printf("caching %p in file %s at %s...\n",
+           request, cache_file, Time.now.to_s)
     server = TCPSocket.open(@remote_host, @remote_port)
+    IO.write(cache_file + "-request", request)
     server.write(request)
-    if File.exist(cache_file)
+    if File.file?(cache_file)
       File.rename(cache_file, cache_file + ".old")
     end
     file = File.open(cache_file, "w")
     data = ""
+    length = 0
     begin
       loop do
         data = server.sysread(1000)
+        length += data.bytesize
         client.write(data)
         file.write(data)
         data = ""
@@ -93,6 +98,7 @@ class FlashChipProxy < FlashChipProxySettings
     end
     server.close()
     file.close()
+    printf("Stored %d bytes\n", length)
   end
   
   def read_request(connection)
@@ -102,6 +108,26 @@ class FlashChipProxy < FlashChipProxySettings
       request = request + line
     end
     request = request.sub(/\r\n\r\n.*/m, "\r\n\r\n")
+    return minimize_request(request)
+  end
+
+  def minimize_request(request)
+    request.sub!(/^Connection: keep-alive/, "Connection: close")
+    request.sub!(/^User-Agent: .*\r\n/, "")
+    request.sub!(/^Cookie: .*\r\n/, "")
+    request.sub!(/^If-None-Match: .*\r\n/, "")
+    request.sub!(/^If-Modified-Since: .*\r\n/, "")
+
+    request.sub!(/^Referer: .*\r\n/, "")
+    request.sub!(/^Accept-Encoding: .*\r\n/, "")
+    request.sub!(/^Accept-Language: .*\r\n/, "")
+    request.sub!(/^Accept: .*\r\n/, "")
+    request.sub!(/^Upgrade-Insecure-Requests: .*\r\n/, "")
+    request.sub!(/^Range: .*\r\n/, "")
+    request.sub!(/^If-Range: .*\r\n/, "")
+    request.sub!(/^X-Requested-With: .*\r\n/, "")
+    request.sub!(/^Cache-Control: .*\r\n/, "")
+    printf("<<<<<minimized request:>>>>>>>\n%s",request)
     return request
   end
 end
